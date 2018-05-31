@@ -5,43 +5,40 @@ import threading
 
 
 class Server:
-    def __init__(self, ip, port):
-        self.ip = ip
+    def __init__(self, host, port):
+        self.host = host
         self.port = port
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     def sv(self):
-        # create socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_address = (self.ip, self.port)
-        sock.bind(server_address)
+
+        # server_address = (self.host, self.port)
+        self.sock.bind((self.host, self.port))
 
         # listen for incoming connections (server mode) with 5 connection at a time
-        sock.listen(10)
+        self.sock.listen(10)
 
         while True:
             # wait for a connection
-            connection, client_address = sock.accept()
-
-            try:
-                # receive the data in small chunks and print it
-                while True:
-                    data = connection.recv(1024)
-                    if data:
-                        data1 = json.loads(data.decode('utf-8'))
-                        # output received data
-                        print("Data: %s" % data1)
-                        new_data = {"client": data1['client'], "time": time.strftime("_%S")}
-                        connection.sendall(json.dumps(new_data).encode('utf-8'))
-                    else:
-                        # no more data -- quit the loop
-                        print("no more data.")
-                        break
-            except Exception as e:
-                print(e)
+            print('waiting for a connection')
+            connection, client_address = self.sock.accept()
+            # receive the data in small chunks and print it
+            # while True:
+            data = connection.recv(1024)
+            if data:
+                data1 = json.loads(data.decode('utf-8'))
+                # output received data
+                print("Data: %s" % data1)
+                new_data = {"client": data1['client'], "time": time.strftime("_%S")}
+                connection.sendall(json.dumps(new_data).encode('utf-8'))
             else:
-                # Clean up the connection
+                # no more data -- quit the loop
+                print("no more data.")
+                break
 
-                connection.close()
+        # Clean up the connection
+        connection.close()
 
 
 class Client_s:
@@ -71,18 +68,15 @@ class Client_s:
 
 if __name__ == '__main__':
     host = 'localhost'
-    port = 50018
+    port = 2018
 
     def start_serv(h, p):
-        Server(h, p).sv()
-        time.sleep(10)
-
-
-
-
+        serv = Server(h, p)
+        serv.sv()
 
     def client(h1, p1, c):
-        while True:
+        # send at 10 second 
+        for i in range(10):
             cl = Client_s(h1, p1, c)
             cl.cli()
             # wait second
@@ -107,6 +101,9 @@ if __name__ == '__main__':
     cl3.join()
     cl4.join()
     cl5.join()
+
+
+
 
 
 
