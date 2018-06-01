@@ -11,7 +11,7 @@ class Server:
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     def sv(self):
 
@@ -79,7 +79,11 @@ if __name__ == '__main__':
 
     for c in client:
         Process(name=c, target=Server(host, port).sv,).start()
-        Process(target=Clients(host, port, c).cli, ).start()
+        p = Process(target=Clients(host, port, c).cli, )
+        p.start()
+        p.join()
+
+
 
 
 
